@@ -200,7 +200,9 @@ app.get("/api/orders/:id", (req, res) => {
 });
 
 //PORT OUTPUT
-app.listen(port, () => {
-  console.log(`Restaurant Menu app listening on port ${port}`);
-  console.log(`Open http://localhost:${port} in your browser`);
-});
+if (process.env.NODE_ENV !== "production") {
+  const port = 3000;
+  app.listen(port, () => console.log(`Server running on port ${port}`));
+}
+
+module.exports = app;
