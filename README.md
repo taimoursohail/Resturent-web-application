@@ -1,42 +1,46 @@
-# 🍽️ L'Éclat Gastronomy
-### Premium Restaurant Menu & Ordering System
+# L'Éclat Gastronomy
+## Premium Restaurant Menu and Ordering System
 
-![Node.js](https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)
-![Express.js](https://img.shields.io/badge/Express.js-000000?style=for-the-badge&logo=express&logoColor=white)
-![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)
-![License](https://img.shields.io/badge/License-ISC-blue?style=for-the-badge)
+[![Node.js](https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)](https://nodejs.org/)
+[![Express.js](https://img.shields.io/badge/Express.js-000000?style=for-the-badge&logo=express&logoColor=white)](https://expressjs.com/)
+[![Vercel](https://img.shields.io/badge/Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://vercel.com/)
+[![License](https://img.shields.io/badge/License-ISC-blue?style=for-the-badge)](https://opensource.org/licenses/ISC)
 
-A sophisticated full-stack restaurant application providing an elegant luxury dining experience. Built with **Express.js** and **EJS**, featuring a real-time ordering system and a dark-themed aesthetic with gold accents.
+L'Éclat Gastronomy is a full-stack web application designed for luxury dining establishments. Built with Node.js, Express.js, and EJS, the platform provides a seamless digital menu experience and a robust backend ordering system.
 
----
-
-## ✨ Key Features
-
-### 💎 Frontend Experience
-* **Luxury Design**: Responsive dark theme optimized for all devices.
-* **Smart Shopping Cart**: Persistent storage using `localStorage` (your items stay even if you refresh).
-* **Interactive UI**: Smooth animations, real-time total calculations (including tax), and hover effects.
-* **Seamless Checkout**: Integrated customer data collection for order processing.
-
-### ⚙️ Backend Power
-* **Dynamic Routing**: RESTful API for menu retrieval and order submission.
-* **Menu Management**: Centralized data structure categorized by Appetizers, Mains, Desserts, and Drinks.
-* **Admin Dashboard**: Dedicated interface to view and manage incoming orders in real-time.
+**Live Demo:** [https://restaurant-app-eta-three.vercel.app/](https://restaurant-app-eta-three.vercel.app/)
 
 ---
 
-## 📂 Project Structure
+## Technical Features
+
+### Client-Side Architecture
+* **Responsive UI**: A high-contrast dark theme with gold accents, optimized for mobile, tablet, and desktop viewing.
+* **Persistent State Management**: Implementation of `localStorage` ensures shopping cart data persists across browser refreshes.
+* **Dynamic Computations**: Real-time logic for tax calculation (15%) and order totals.
+* **User Interface**: Smooth CSS transitions and asynchronous UI updates for an enhanced user experience.
+
+### Server-Side Architecture
+* **RESTful API**: Endpoints developed for dynamic menu retrieval and secure order submission.
+* **Stateful Order Management**: In-memory server-side storage for tracking active customer orders.
+* **Template Engine**: Server-side rendering utilized via EJS for dynamic content delivery.
+* **Admin Dashboard**: A secure internal interface for real-time monitoring of customer data and order history.
+
+---
+
+## Project Structure
 
 ```text
 .
-├── app.js                # Main Express application
-├── menuData.js           # Menu items database (JSON/Object)
-├── package.json          # Dependencies & Scripts
-├── public/               # Static Assets
-│   ├── images/           # UI Icons & Food Images
-│   ├── javaScript/       # Client-side Cart Logic
-│   └── stylesheet/       # Custom CSS (Luxury Theme)
-└── views/                # EJS Templates
-    ├── index.ejs         # Customer Menu Page
-    ├── admin.ejs         # Order Management Dashboard
-    └── partials/         # Reusable Header/Footer
+├── app.js                # Primary Express server and middleware configuration
+├── menuData.js           # Centralized data model for menu items
+├── package.json          # Dependency management and project scripts
+├── vercel.json           # Deployment configuration for Vercel Serverless Functions
+├── public/               # Static assets directory
+│   ├── images/           # High-resolution UI and product assets
+│   ├── javaScript/       # Client-side business logic and cart management
+│   └── stylesheet/       # Core CSS architecture
+└── views/                # Server-side templates (EJS)
+    ├── index.ejs         # Primary storefront/menu view
+    ├── admin.ejs         # Administrative order management view
+    └── partials/         # Modular template components (Header/Footer)
