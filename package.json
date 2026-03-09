@@ -1,0 +1,24 @@
+{
+  "name": "resturent-menu",
+  "version": "1.0.0",
+  "description": "System designed for reciving the Resturents orders.",
+  "keywords": [
+    "Menu",
+    "NodeJS",
+    "ExpressJS"
+  ],
+  "license": "ISC",
+  "author": "Bin Sohail",
+  "type": "module",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "dev": "node app.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "ejs": "^5.0.1",
+    "express": "^5.2.1"
+  },
+  "devDependencies": {}
+}

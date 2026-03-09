@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<%- include('./partials/header.ejs') %>
+
+    <body>
+        <header style="background-color: #1a1a1a; border-bottom: 2px solid #c5a059;">
+            <h1 class="logo serif gold-text" style="font-size: 2rem;">L'Éclat Admin</h1>
+            <p class="tagline" style="font-size: 0.9rem;">Order Management System</p>
+        </header>
+
+        <nav>
+            <ul class="nav-links">
+                <li><a href="/">🏠 Back to Menu</a></li>
+                <li><a href="/admin/dishes">🍽️ Manage Dishes</a></li>
+                <li><a href="/admin/orders" class="nav-active">📋 View Orders</a></li>
+            </ul>
+        </nav>
+
+        <section class="container" style="padding: 3rem 2rem;">
+            <h2 class="section-title gold-text">Orders Management</h2>
+
+            <div id="orders-container">
+                <% if (orders.length===0) { %>
+                    <div class="empty-state">
+                        <p style="color: #a0a0a0; font-size: 1.1rem; text-align: center;">No orders received yet</p>
+                    </div>
+                    <% } else { %>
+                        <% orders.forEach((order, index)=> { %>
+                            <div class="order-card">
+                                <div class="order-header">
+                                    <h3 class="gold-text">Order #<%= order.id %>
+                                    </h3>
+                                    <span class="order-status">
+                                        <%= order.status %>
+                                    </span>
+                                </div>
+                                <div class="order-info">
+                                    <p><strong>Customer:</strong>
+                                        <%= order.customerName %>
+                                    </p>
+                                    <p><strong>Email:</strong>
+                                        <%= order.customerEmail %>
+                                    </p>
+                                    <p><strong>Time:</strong>
+                                        <%= new Date(order.timestamp).toLocaleString() %>
+                                    </p>
+                                </div>
+                                <div class="order-items">
+                                    <h4 class="gold-text">Items:</h4>
+                                    <ul>
+                                        <% order.items.forEach(item=> { %>
+                                            <li>
+                                                <%= item.quantity %>x <%= item.name %> - $<%= (item.price *
+                                                            item.quantity).toFixed(2) %>
+                                            </li>
+                                            <% }); %>
+                                    </ul>
+                                </div>
+                                <div class="order-total">
+                                    <% const subtotal=order.items.reduce((sum, item)=> sum + (item.price *
+                                        item.quantity), 0);
+                                        const tax = subtotal * 0.15;
+                                        const total = subtotal + tax;
+                                        %>
+                                        <p><strong>Subtotal:</strong> $<%= subtotal.toFixed(2) %>
+                                        </p>
+                                        <p><strong>Tax (15%):</strong> $<%= tax.toFixed(2) %>
+                                        </p>
+                                        <p class="gold-text"><strong>Total:</strong> $<%= total.toFixed(2) %>
+                                        </p>
+                                </div>
+                            </div>
+                            <% }); %>
+                                <% } %>
+            </div>
+        </section>
+
+        <%- include('./partials/footer.ejs') %>
+
+            <style>
+                .order-card {
+                    background-color: #0d0d0d;
+                    border: 1px solid #c5a05922;
+                    border-radius: 8px;
+                    padding: 1.5rem;
+                    margin-bottom: 2rem;
+                    transition: all 0.3s ease;
+                }
+
+                .order-card:hover {
+                    border-color: #c5a059;
+                    box-shadow: 0 0 20px rgba(197, 160, 89, 0.1);
+                }
+
+                .order-header {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    margin-bottom: 1rem;
+                    padding-bottom: 1rem;
+                    border-bottom: 1px solid #c5a05922;
+                }
+
+                .order-header h3 {
+                    margin: 0;
+                }
+
+                .order-status {
+                    background-color: #c5a05922;
+                    color: #c5a059;
+                    padding: 0.4rem 0.8rem;
+                    border-radius: 4px;
+                    font-size: 0.85rem;
+                    text-transform: uppercase;
+                    letter-spacing: 1px;
+                }
+
+                .order-info {
+                    margin-bottom: 1rem;
+                    font-size: 0.95rem;
+                    color: #a0a0a0;
+                }
+
+                .order-info p {
+                    margin: 0.5rem 0;
+                }
+
+                .order-items {
+                    margin-bottom: 1rem;
+                    background-color: #1a1a1a;
+                    padding: 1rem;
+                    border-radius: 4px;
+                }
+
+                .order-items h4 {
+                    margin-top: 0;
+                    margin-bottom: 0.5rem;
+                }
+
+                .order-items ul {
+                    list-style: none;
+                    padding: 0;
+                    margin: 0;
+                }
+
+                .order-items li {
+                    padding: 0.5rem 0;
+                    color: #d0d0d0;
+                    border-bottom: 1px solid #c5a05911;
+                }
+
+                .order-items li:last-child {
+                    border-bottom: none;
+                }
+
+                .order-total {
+                    background-color: #1a1a1a;
+                    padding: 1rem;
+                    border-radius: 4px;
+                    border-left: 3px solid #c5a059;
+                }
+
+                .order-total p {
+                    margin: 0.3rem 0;
+                    color: #d0d0d0;
+                    font-size: 0.95rem;
+                }
+
+                .order-total .gold-text {
+                    font-size: 1.1rem;
+                    margin-top: 0.5rem;
+                }
+
+                .empty-state {
+                    text-align: center;
+                    padding: 3rem;
+                    background-color: #0d0d0d;
+                    border: 1px dashed #c5a05922;
+                    border-radius: 8px;
+                }
+
+                @media (max-width: 768px) {
+                    .order-header {
+                        flex-direction: column;
+                        align-items: flex-start;
+                        gap: 0.5rem;
+                    }
+
+                    .order-card {
+                        padding: 1rem;
+                    }
+                }
+            </style>
+    </body>
+
+</html>

@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<%- include('./partials/header.ejs') %>
+
+  <body>
+    <!-- BEGIN: MainHeader -->
+    <header>
+      <h1 class="logo serif gold-text">L'Éclat</h1>
+      <p class="tagline">An Odyssey of Refined Flavors</p>
+    </header>
+    <!-- END: MainHeader -->
+    <!-- BEGIN: Sticky Navigation -->
+    <nav>
+      <ul class="nav-links">
+        <li><a href="#appetizers">Appetizers</a></li>
+        <li><a href="#mains">Main Courses</a></li>
+        <li><a href="#desserts">Desserts</a></li>
+        <li><a href="#drinks">Drinks</a></li>
+        <li><a href="/admin/orders" class="nav-link-orders">📋 View Orders</a></li>
+        <li class="cart-icon" onclick="toggleCart()">
+          🛒 <span id="cart-count">0</span>
+        </li>
+      </ul>
+    </nav>
+    <!-- END: Sticky Navigation -->
+
+    <!-- BEGIN: Appetizers Section -->
+    <section class="container" id="appetizers">
+      <h2 class="section-title gold-text">Appetizers</h2>
+      <div class="menu-grid" id="appetizers-grid">
+        <!-- Dynamically populated -->
+      </div>
+    </section>
+    <!-- END: Appetizers Section -->
+
+    <!-- BEGIN: Main Courses Section -->
+    <section id="mains" style="background-color: #0d0d0d;">
+      <div class="container">
+        <h2 class="section-title gold-text">Main Courses</h2>
+        <div class="menu-grid" id="mains-grid">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+    </section>
+    <!-- END: Main Courses Section -->
+
+    <!-- BEGIN: Desserts Section -->
+    <section class="container" id="desserts">
+      <h2 class="section-title gold-text">Desserts</h2>
+      <div class="menu-grid" id="desserts-grid">
+        <!-- Dynamically populated -->
+      </div>
+    </section>
+    <!-- END: Desserts Section -->
+
+    <!-- BEGIN: Drinks Section -->
+    <section id="drinks" style="background-color: #0d0d0d;">
+      <div class="container">
+        <h2 class="section-title gold-text">Curated Spirits & Beverages</h2>
+        <div class="menu-grid" id="drinks-grid">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+    </section>
+    <!-- END: Drinks Section -->
+
+    <!-- BEGIN: Shopping Cart Modal -->
+    <div id="cart-modal" class="modal" style="display: none;">
+      <div class="modal-content">
+        <span class="close" onclick="toggleCart()">&times;</span>
+        <h2 class="gold-text">Your Order</h2>
+        <div id="cart-items" class="cart-items">
+          <!-- Cart items populated here -->
+        </div>
+        <div id="cart-empty" class="cart-empty">
+          <p>Your cart is empty</p>
+        </div>
+        <div id="cart-summary" style="display: none;">
+          <div class="cart-subtotal">
+            <span>Subtotal:</span>
+            <span id="subtotal">$0.00</span>
+          </div>
+          <div class="cart-tax">
+            <span>Tax (15%):</span>
+            <span id="tax">$0.00</span>
+          </div>
+          <div class="cart-total">
+            <span>Total:</span>
+            <span id="total">$0.00</span>
+          </div>
+        </div>
+        <div id="checkout-form" style="display: none; margin-top: 2rem;">
+          <h3 class="gold-text">Checkout</h3>
+          <form onsubmit="submitOrder(event)">
+            <div class="form-group">
+              <label for="name">Name:</label>
+              <input type="text" id="name" name="name" required>
+            </div>
+            <div class="form-group">
+              <label for="email">Email:</label>
+              <input type="email" id="email" name="email" required>
+            </div>
+            <button type="submit" class="btn-submit">Place Order</button>
+            <button type="button" class="btn-cancel" onclick="toggleCart()">Continue Shopping</button>
+          </form>
+        </div>
+      </div>
+    </div>
+    <!-- BEGIN: Shopping Cart Modal -->
+    <div id="cart-modal" class="modal" style="display: none;">
+      <div class="modal-content">
+        <span class="close" onclick="toggleCart()">&times;</span>
+        <h2 class="gold-text">Your Order</h2>
+        <div id="cart-items" class="cart-items">
+          <!-- Cart items populated here -->
+        </div>
+        <div id="cart-empty" class="cart-empty">
+          <p>Your cart is empty</p>
+        </div>
+        <div id="cart-summary" style="display: none;">
+          <div class="cart-subtotal">
+            <span>Subtotal:</span>
+            <span id="subtotal">$0.00</span>
+          </div>
+          <div class="cart-tax">
+            <span>Tax (15%):</span>
+            <span id="tax">$0.00</span>
+          </div>
+          <div class="cart-total">
+            <span>Total:</span>
+            <span id="total">$0.00</span>
+          </div>
+        </div>
+        <div id="checkout-form" style="display: none; margin-top: 2rem;">
+          <h3 class="gold-text">Checkout</h3>
+          <form onsubmit="submitOrder(event)">
+            <div class="form-group">
+              <label for="name">Name:</label>
+              <input type="text" id="name" name="name" required>
+            </div>
+            <div class="form-group">
+              <label for="email">Email:</label>
+              <input type="email" id="email" name="email" required>
+            </div>
+            <button type="submit" class="btn-submit">Place Order</button>
+            <button type="button" class="btn-cancel" onclick="toggleCart()">Continue Shopping</button>
+          </form>
+        </div>
+      </div>
+    </div>
+    <!-- END: Shopping Cart Modal -->
+
+    <!-- Hidden menu data container -->
+    <div id="menuDataJson" style="display:none">
+      <%= JSON.stringify(menuData) %>
+    </div>
+
+    <!-- BEGIN: Footer -->
+    <%- include('./partials/footer.ejs') %>
+
+      <script>
+        let cart = [];
+        const menuDataJson = document.getElementById('menuDataJson').textContent;
+        const menuData = JSON.parse(menuDataJson);
+
+        console.log('Menu data loaded:', menuData);
+
+        function initializeApp() {
+          console.log('Initializing app...');
+          try {
+            renderMenu();
+            loadCartFromStorage();
+            console.log('App initialized successfully');
+          } catch (error) {
+            console.error('Error initializing app:', error);
+          }
+        }
+
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', initializeApp);
+        } else {
+          setTimeout(initializeApp, 100);
+        }
+
+        function renderMenu() {
+          console.log('renderMenu() called');
+          Object.keys(menuData).forEach(category => {
+            console.log(`Rendering ${category}...`);
+            const gridElement = document.getElementById(`${category}-grid`);
+
+            if (!gridElement) {
+              console.error(`ERROR: Grid element not found: ${category}-grid`);
+              return;
+            }
+
+            const items = menuData[category];
+            console.log(`${category} has ${items.length} items`);
+
+            let html = '';
+            items.forEach(item => {
+              const image = item.image || 'https://placehold.co/400x300/1a1a1a/c5a059';
+              const itemId = item.id;
+              const itemPrice = item.price;
+              const itemName = item.name.replace(/'/g, "\\'");
+
+              html += `<div class="menu-item" data-purpose="menu-card">
+                <img alt="${item.name}" class="item-image" src="${image}" />
+                <div class="item-header">
+                  <h3 class="item-name serif">${item.name}</h3>
+                  <span class="item-price">$${itemPrice}</span>
+                </div>
+                <p class="item-description">${item.description}</p>
+                <button class="add-to-cart-btn" onclick="addToCart(${itemId}, '${itemName}', ${itemPrice})">
+                  Add to Order
+                </button>
+              </div>`;
+            });
+
+            gridElement.innerHTML = html;
+            console.log(`✓ ${category} grid updated with ${items.length} items`);
+          });
+        }
+
+        function addToCart(id, name, price) {
+          const existingItem = cart.find(item => item.id === id);
+
+          if (existingItem) {
+            existingItem.quantity++;
+          } else {
+            cart.push({ id, name, price, quantity: 1 });
+          }
+
+          saveCartToStorage();
+          updateCartDisplay();
+
+          // Show feedback
+          alert(`${name} added to order!`);
+        }
+
+        function removeFromCart(id) {
+          cart = cart.filter(item => item.id !== id);
+          saveCartToStorage();
+          updateCartDisplay();
+        }
+
+        function updateQuantity(id, quantity) {
+          const item = cart.find(item => item.id === id);
+          if (item) {
+            item.quantity = Math.max(1, parseInt(quantity));
+            saveCartToStorage();
+            updateCartDisplay();
+          }
+        }
+
+        function updateCartDisplay() {
+          const cartModal = document.getElementById('cart-modal');
+          const cartItems = document.getElementById('cart-items');
+          const cartEmpty = document.getElementById('cart-empty');
+          const cartSummary = document.getElementById('cart-summary');
+          const checkoutForm = document.getElementById('checkout-form');
+          const cartCount = document.getElementById('cart-count');
+
+          cartCount.textContent = cart.length;
+
+          if (cart.length === 0) {
+            cartItems.innerHTML = '';
+            cartEmpty.style.display = 'block';
+            cartSummary.style.display = 'none';
+            checkoutForm.style.display = 'none';
+          } else {
+            cartEmpty.style.display = 'none';
+            cartSummary.style.display = 'block';
+            checkoutForm.style.display = 'block';
+
+            cartItems.innerHTML = cart.map(item => `
+          <div class="cart-item">
+            <div class="cart-item-info">
+              <span class="cart-item-name">${item.name}</span>
+              <span class="cart-item-price">$${item.price}</span>
+            </div>
+            <div class="cart-item-controls">
+              <input type="number" min="1" value="${item.quantity}" 
+                onchange="updateQuantity(${item.id}, this.value)">
+              <button onclick="removeFromCart(${item.id})" class="btn-remove">Remove</button>
+            </div>
+          </div>
+        `).join('');
+
+            // Calculate totals
+            const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            const tax = subtotal * 0.15;
+            const total = subtotal + tax;
+
+            document.getElementById('subtotal').textContent = '$' + subtotal.toFixed(2);
+            document.getElementById('tax').textContent = '$' + tax.toFixed(2);
+            document.getElementById('total').textContent = '$' + total.toFixed(2);
+          }
+        }
+
+        function toggleCart() {
+          const modal = document.getElementById('cart-modal');
+          if (modal.style.display === 'none') {
+            modal.style.display = 'block';
+            updateCartDisplay();
+          } else {
+            modal.style.display = 'none';
+          }
+        }
+
+        function submitOrder(event) {
+          event.preventDefault();
+
+          if (cart.length === 0) {
+            alert('Please add items to your order');
+            return;
+          }
+
+          const name = document.getElementById('name').value;
+          const email = document.getElementById('email').value;
+
+          const orderData = {
+            items: cart.map(item => ({ id: item.id, name: item.name, price: item.price, quantity: item.quantity })),
+            customerName: name,
+            customerEmail: email
+          };
+
+          fetch('/api/orders', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(orderData)
+          })
+            .then(response => response.json())
+            .then(data => {
+              if (data.success) {
+                alert(`Order placed successfully! Order ID: ${data.orderId}\n\n${data.message}`);
+                cart = [];
+                saveCartToStorage();
+                clearOrderForm();
+                toggleCart();
+                updateCartDisplay();
+              } else {
+                alert('Error placing order: ' + data.error);
+              }
+            })
+            .catch(error => {
+              console.error('Error:', error);
+              alert('Failed to place order. Please try again.');
+            });
+        }
+
+        function clearOrderForm() {
+          document.getElementById('name').value = '';
+          document.getElementById('email').value = '';
+        }
+
+        function saveCartToStorage() {
+          localStorage.setItem('cart', JSON.stringify(cart));
+        }
+
+        function loadCartFromStorage() {
+          const saved = localStorage.getItem('cart');
+          if (saved) {
+            cart = JSON.parse(saved);
+            updateCartDisplay();
+          }
+        }
+
+        // Close modal when clicking outside of it
+        window.onclick = function (event) {
+          const modal = document.getElementById('cart-modal');
+          if (event.target === modal) {
+            modal.style.display = 'none';
+          }
+        }
+      </script>
+  </body>
+
+</html>
