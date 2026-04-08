@@ -18,13 +18,24 @@
         <li><a href="#mains">Main Courses</a></li>
         <li><a href="#desserts">Desserts</a></li>
         <li><a href="#drinks">Drinks</a></li>
-        <li><a href="/admin/orders" class="nav-link-orders">📋 View Orders</a></li>
         <li class="cart-icon" onclick="toggleCart()">
           🛒 <span id="cart-count">0</span>
         </li>
       </ul>
     </nav>
     <!-- END: Sticky Navigation -->
+
+    <section class="menu-toolbar" aria-label="Menu tools">
+      <div class="container menu-toolbar-inner">
+        <div class="menu-search">
+          <input id="menu-search" type="search" placeholder="Search dishes..." autocomplete="off" />
+        </div>
+        <div class="menu-actions">
+          <button class="btn-ghost" type="button" onclick="scrollToTop()">Top</button>
+          <button class="btn-primary" type="button" onclick="toggleCart()">View Order</button>
+        </div>
+      </div>
+    </section>
 
     <!-- BEGIN: Appetizers Section -->
     <section class="container" id="appetizers">
@@ -83,49 +94,7 @@
             <span id="subtotal">$0.00</span>
           </div>
           <div class="cart-tax">
-            <span>Tax (15%):</span>
-            <span id="tax">$0.00</span>
-          </div>
-          <div class="cart-total">
-            <span>Total:</span>
-            <span id="total">$0.00</span>
-          </div>
-        </div>
-        <div id="checkout-form" style="display: none; margin-top: 2rem;">
-          <h3 class="gold-text">Checkout</h3>
-          <form onsubmit="submitOrder(event)">
-            <div class="form-group">
-              <label for="name">Name:</label>
-              <input type="text" id="name" name="name" required>
-            </div>
-            <div class="form-group">
-              <label for="email">Email:</label>
-              <input type="email" id="email" name="email" required>
-            </div>
-            <button type="submit" class="btn-submit">Place Order</button>
-            <button type="button" class="btn-cancel" onclick="toggleCart()">Continue Shopping</button>
-          </form>
-        </div>
-      </div>
-    </div>
-    <!-- BEGIN: Shopping Cart Modal -->
-    <div id="cart-modal" class="modal" style="display: none;">
-      <div class="modal-content">
-        <span class="close" onclick="toggleCart()">&times;</span>
-        <h2 class="gold-text">Your Order</h2>
-        <div id="cart-items" class="cart-items">
-          <!-- Cart items populated here -->
-        </div>
-        <div id="cart-empty" class="cart-empty">
-          <p>Your cart is empty</p>
-        </div>
-        <div id="cart-summary" style="display: none;">
-          <div class="cart-subtotal">
-            <span>Subtotal:</span>
-            <span id="subtotal">$0.00</span>
-          </div>
-          <div class="cart-tax">
-            <span>Tax (15%):</span>
+            <span id="tax-label">Tax:</span>
             <span id="tax">$0.00</span>
           </div>
           <div class="cart-total">
@@ -152,6 +121,18 @@
     </div>
     <!-- END: Shopping Cart Modal -->
 
+    <div id="toast" class="toast" role="status" aria-live="polite" aria-atomic="true"></div>
+
+    <div class="mobile-cartbar" id="mobile-cartbar" style="display:none">
+      <div class="mobile-cartbar-inner">
+        <div class="mobile-cartbar-left">
+          <div class="mobile-cartbar-title">Your order</div>
+          <div class="mobile-cartbar-sub" id="mobile-cartbar-sub">$0.00 • 0 items</div>
+        </div>
+        <button class="btn-primary" type="button" onclick="toggleCart()">Checkout</button>
+      </div>
+    </div>
+
     <!-- Hidden menu data container -->
     <div id="menuDataJson" style="display:none">
       <%= JSON.stringify(menuData) %>
@@ -162,17 +143,16 @@
 
       <script>
         let cart = [];
+        const TAX_RATE = Number("<%= taxRate %>") || 0.15;
+        let menuSearchQuery = '';
         const menuDataJson = document.getElementById('menuDataJson').textContent;
         const menuData = JSON.parse(menuDataJson);
 
-        console.log('Menu data loaded:', menuData);
-
         function initializeApp() {
-          console.log('Initializing app...');
           try {
+            bindToolbar();
             renderMenu();
             loadCartFromStorage();
-            console.log('App initialized successfully');
           } catch (error) {
             console.error('Error initializing app:', error);
           }
@@ -184,10 +164,18 @@
           setTimeout(initializeApp, 100);
         }
 
+        function bindToolbar() {
+          const searchInput = document.getElementById('menu-search');
+          if (searchInput) {
+            searchInput.addEventListener('input', (e) => {
+              menuSearchQuery = (e.target.value || '').trim().toLowerCase();
+              renderMenu();
+            });
+          }
+        }
+
         function renderMenu() {
-          console.log('renderMenu() called');
           Object.keys(menuData).forEach(category => {
-            console.log(`Rendering ${category}...`);
             const gridElement = document.getElementById(`${category}-grid`);
 
             if (!gridElement) {
@@ -195,8 +183,11 @@
               return;
             }
 
-            const items = menuData[category];
-            console.log(`${category} has ${items.length} items`);
+            const items = menuData[category].filter((item) => {
+              if (!menuSearchQuery) return true;
+              const haystack = `${item.name} ${item.description}`.toLowerCase();
+              return haystack.includes(menuSearchQuery);
+            });
 
             let html = '';
             items.forEach(item => {
@@ -213,13 +204,12 @@
                 </div>
                 <p class="item-description">${item.description}</p>
                 <button class="add-to-cart-btn" onclick="addToCart(${itemId}, '${itemName}', ${itemPrice})">
-                  Add to Order
+                  Add
                 </button>
               </div>`;
             });
 
             gridElement.innerHTML = html;
-            console.log(`✓ ${category} grid updated with ${items.length} items`);
           });
         }
 
@@ -235,8 +225,7 @@
           saveCartToStorage();
           updateCartDisplay();
 
-          // Show feedback
-          alert(`${name} added to order!`);
+          showToast(`${name} added to your order`);
         }
 
         function removeFromCart(id) {
@@ -261,14 +250,18 @@
           const cartSummary = document.getElementById('cart-summary');
           const checkoutForm = document.getElementById('checkout-form');
           const cartCount = document.getElementById('cart-count');
+          const mobileCartbar = document.getElementById('mobile-cartbar');
+          const mobileCartbarSub = document.getElementById('mobile-cartbar-sub');
 
-          cartCount.textContent = cart.length;
+          const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+          cartCount.textContent = totalItems;
 
           if (cart.length === 0) {
             cartItems.innerHTML = '';
             cartEmpty.style.display = 'block';
             cartSummary.style.display = 'none';
             checkoutForm.style.display = 'none';
+            if (mobileCartbar) mobileCartbar.style.display = 'none';
           } else {
             cartEmpty.style.display = 'none';
             cartSummary.style.display = 'block';
@@ -290,12 +283,19 @@
 
             // Calculate totals
             const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-            const tax = subtotal * 0.15;
+            const tax = subtotal * TAX_RATE;
             const total = subtotal + tax;
 
             document.getElementById('subtotal').textContent = '$' + subtotal.toFixed(2);
+            const taxLabel = document.getElementById('tax-label');
+            if (taxLabel) taxLabel.textContent = `Tax (${Math.round(TAX_RATE * 100)}%):`;
             document.getElementById('tax').textContent = '$' + tax.toFixed(2);
             document.getElementById('total').textContent = '$' + total.toFixed(2);
+
+            if (mobileCartbar && mobileCartbarSub) {
+              mobileCartbar.style.display = 'block';
+              mobileCartbarSub.textContent = `$${total.toFixed(2)} • ${totalItems} item${totalItems === 1 ? '' : 's'}`;
+            }
           }
         }
 
@@ -313,7 +313,7 @@
           event.preventDefault();
 
           if (cart.length === 0) {
-            alert('Please add items to your order');
+            showToast('Please add items to your order', 'error');
             return;
           }
 
@@ -334,19 +334,19 @@
             .then(response => response.json())
             .then(data => {
               if (data.success) {
-                alert(`Order placed successfully! Order ID: ${data.orderId}\n\n${data.message}`);
+                showToast(`Order placed! #${data.orderId}`, 'success');
                 cart = [];
                 saveCartToStorage();
                 clearOrderForm();
                 toggleCart();
                 updateCartDisplay();
               } else {
-                alert('Error placing order: ' + data.error);
+                showToast('Error placing order: ' + data.error, 'error');
               }
             })
             .catch(error => {
               console.error('Error:', error);
-              alert('Failed to place order. Please try again.');
+              showToast('Failed to place order. Please try again.', 'error');
             });
         }
 
@@ -365,6 +365,21 @@
             cart = JSON.parse(saved);
             updateCartDisplay();
           }
+        }
+
+        function showToast(message, variant = 'info') {
+          const toast = document.getElementById('toast');
+          if (!toast) return;
+          toast.className = `toast toast-${variant} toast-show`;
+          toast.textContent = message;
+          clearTimeout(window.__toastTimer);
+          window.__toastTimer = setTimeout(() => {
+            toast.className = `toast toast-${variant}`;
+          }, 2200);
+        }
+
+        function scrollToTop() {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         // Close modal when clicking outside of it

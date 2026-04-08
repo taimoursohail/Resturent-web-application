@@ -5,9 +5,21 @@ import { fileURLToPath } from "url";
 import { loadMenuData, saveMenuData, getNextId } from "./menuManager.js";
 
 const app = express();
-const port = 3000;
+const port = Number(process.env.PORT) || 3000;
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+const parsedTaxRate = Number(process.env.TAX_RATE);
+const TAX_RATE = Number.isFinite(parsedTaxRate) ? parsedTaxRate : 0.15;
+
+const adminSlugs = (process.env.ADMIN_SLUGS || "admin")
+  .split(",")
+  .map((s) => s.trim())
+  .filter(Boolean);
+
+function isAuthorizedAdminSlug(slug) {
+  return adminSlugs.includes(slug);
+}
 
 // Load initial menu data
 let menuData = loadMenuData();
@@ -28,11 +40,12 @@ app.get("/", (req, res) => {
   res.render("index.ejs", {
     footerYear: new Date().getFullYear(),
     menuData: menuData,
+    taxRate: TAX_RATE,
   });
 });
 
 app.all("/admin", (req, res) => {
-  res.redirect("/admin/orders");
+  res.redirect("/");
 });
 
 app.all("/test", (req, res) => {
@@ -40,16 +53,36 @@ app.all("/test", (req, res) => {
 });
 
 app.get("/admin/orders", (req, res) => {
+  res.redirect("/");
+});
+
+app.get("/admin/orders/:slug", (req, res) => {
+  const { slug } = req.params;
+  if (!isAuthorizedAdminSlug(slug)) {
+    return res.status(404).send("Not found");
+  }
   res.render("orders.ejs", {
     footerYear: new Date().getFullYear(),
     orders: orders,
+    taxRate: TAX_RATE,
+    adminSlug: slug,
   });
 });
 
 app.get("/admin/dishes", (req, res) => {
+  res.redirect("/");
+});
+
+app.get("/admin/dishes/:slug", (req, res) => {
+  const { slug } = req.params;
+  if (!isAuthorizedAdminSlug(slug)) {
+    return res.status(404).send("Not found");
+  }
   res.render("dishes.ejs", {
     footerYear: new Date().getFullYear(),
     menuData: menuData,
+    taxRate: TAX_RATE,
+    adminSlug: slug,
   });
 });
 
@@ -89,7 +122,7 @@ app.post("/api/dishes", (req, res) => {
     image:
       image ||
       `https://placehold.co/400x300/1a1a1a/c5a059?text=${encodeURIComponent(
-        name
+        name,
       )}`,
   };
 
@@ -148,7 +181,7 @@ app.delete("/api/dishes/:id", (req, res) => {
 
   for (const category in menuData) {
     const itemIndex = menuData[category].findIndex(
-      (item) => item.id === dishId
+      (item) => item.id === dishId,
     );
     if (itemIndex !== -1) {
       menuData[category].splice(itemIndex, 1);
@@ -187,10 +220,26 @@ app.post("/api/orders", (req, res) => {
 });
 
 app.get("/api/orders", (req, res) => {
-  res.json(orders);
+  res.status(404).json({ error: "Not found" });
 });
 
 app.get("/api/orders/:id", (req, res) => {
+  res.status(404).json({ error: "Not found" });
+});
+
+app.get("/api/admin/:slug/orders", (req, res) => {
+  const { slug } = req.params;
+  if (!isAuthorizedAdminSlug(slug)) {
+    return res.status(404).json({ error: "Not found" });
+  }
+  res.json(orders);
+});
+
+app.get("/api/admin/:slug/orders/:id", (req, res) => {
+  const { slug } = req.params;
+  if (!isAuthorizedAdminSlug(slug)) {
+    return res.status(404).json({ error: "Not found" });
+  }
   const order = orders.find((o) => o.id === parseInt(req.params.id));
   if (order) {
     res.json(order);
@@ -201,7 +250,6 @@ app.get("/api/orders/:id", (req, res) => {
 
 //PORT OUTPUT
 if (process.env.NODE_ENV !== "production") {
-  const port = 3000;
   app.listen(port, () => console.log(`Server running on port ${port}`));
 }
 

@@ -12,8 +12,8 @@
         <nav>
             <ul class="nav-links">
                 <li><a href="/">🏠 Back to Menu</a></li>
-                <li><a href="/admin/dishes">🍽️ Manage Dishes</a></li>
-                <li><a href="/admin/orders" class="nav-active">📋 View Orders</a></li>
+                <li><a href="/admin/dishes/<%= adminSlug %>">🍽️ Manage Dishes</a></li>
+                <li><a href="/admin/orders/<%= adminSlug %>" class="nav-active">📋 View Orders</a></li>
             </ul>
         </nav>
 
@@ -60,12 +60,14 @@
                                 <div class="order-total">
                                     <% const subtotal=order.items.reduce((sum, item)=> sum + (item.price *
                                         item.quantity), 0);
-                                        const tax = subtotal * 0.15;
+                                        const taxRateValue = Number(taxRate) || 0.15;
+                                        const tax = subtotal * taxRateValue;
                                         const total = subtotal + tax;
                                         %>
                                         <p><strong>Subtotal:</strong> $<%= subtotal.toFixed(2) %>
                                         </p>
-                                        <p><strong>Tax (15%):</strong> $<%= tax.toFixed(2) %>
+                                        <p><strong>Tax (<%= Math.round((Number(taxRate) || 0.15) * 100) %>%):</strong> $
+                                            <%= tax.toFixed(2) %>
                                         </p>
                                         <p class="gold-text"><strong>Total:</strong> $<%= total.toFixed(2) %>
                                         </p>
