@@ -230,7 +230,7 @@ app.get("/api/orders/:id", (req, res) => {
 app.get("/api/admin/:slug/orders", (req, res) => {
   const { slug } = req.params;
   if (!isAuthorizedAdminSlug(slug)) {
-    return res.status(404).json({ error: "Not found" });
+    return res.status(401).json({ error: "Unauthorized" });
   }
   res.json(orders);
 });
